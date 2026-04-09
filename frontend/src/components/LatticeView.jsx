@@ -11,76 +11,76 @@ export default function LatticeView({ snapshot }) {
 
     const lattice = snapshot.lattice
     const N = lattice.length
-    const size = 300
+    const size = 260
     const cell = size / N
-    const margin = { top: 28, left: 0 }
+    const gap = Math.max(1, cell * 0.08)
 
-    svg.attr('width', size).attr('height', size + margin.top + 30)
+    svg.attr('width', size).attr('height', size + 32)
 
-    svg.append('text')
-      .attr('x', size / 2)
-      .attr('y', 18)
-      .attr('text-anchor', 'middle')
-      .attr('fill', '#9ca3af')
-      .attr('font-size', '13px')
-      .text(`Spin configuration — T=${snapshot.temperature.toFixed(3)}`)
-
-    const g = svg.append('g').attr('transform', `translate(0,${margin.top})`)
+    const g = svg.append('g')
 
     const alarm = snapshot.classical_alarm
     if (alarm) {
       g.append('rect')
-        .attr('x', -2).attr('y', -2)
-        .attr('width', size + 4).attr('height', size + 4)
+        .attr('x', -3).attr('y', -3)
+        .attr('width', size + 6).attr('height', size + 6)
         .attr('fill', 'none')
-        .attr('stroke', '#ef4444')
-        .attr('stroke-width', 2)
-        .attr('rx', 4)
-        .style('animation', 'pulse-border 1s infinite')
+        .attr('stroke', 'rgba(239,68,68,0.4)')
+        .attr('stroke-width', 1.5)
+        .attr('rx', 10)
+        .style('animation', 'glow-pulse 2s ease-in-out infinite')
     }
 
     for (let row = 0; row < N; row++) {
       for (let col = 0; col < N; col++) {
+        const up = lattice[row][col] > 0
         g.append('rect')
-          .attr('x', col * cell)
-          .attr('y', row * cell)
-          .attr('width', cell - 0.5)
-          .attr('height', cell - 0.5)
-          .attr('fill', lattice[row][col] > 0 ? '#E24B4A' : '#378ADD')
+          .attr('x', col * cell + gap / 2)
+          .attr('y', row * cell + gap / 2)
+          .attr('width', cell - gap)
+          .attr('height', cell - gap)
+          .attr('rx', Math.min(3, cell * 0.15))
+          .attr('fill', up ? '#a78bfa' : '#1e1b2e')
+          .attr('opacity', up ? 0.85 : 0.5)
       }
     }
 
-    const barY = size + 6
+    // Magnetization bar
+    const barY = size + 12
     const mag = snapshot.magnetization
-    const barWidth = size * mag
-    const color = d3.interpolateRdBu(1 - mag)
 
     g.append('rect')
       .attr('x', 0).attr('y', barY)
-      .attr('width', size).attr('height', 10)
-      .attr('fill', '#2a2d35').attr('rx', 3)
+      .attr('width', size).attr('height', 6)
+      .attr('fill', 'rgba(255,255,255,0.04)').attr('rx', 3)
+
+    const barGrad = svg.append('defs').append('linearGradient')
+      .attr('id', 'mag-grad').attr('x1', '0%').attr('x2', '100%')
+    barGrad.append('stop').attr('offset', '0%').attr('stop-color', '#7c3aed')
+    barGrad.append('stop').attr('offset', '100%').attr('stop-color', '#a78bfa')
 
     g.append('rect')
       .attr('x', 0).attr('y', barY)
-      .attr('width', barWidth).attr('height', 10)
-      .attr('fill', color).attr('rx', 3)
+      .attr('width', size * mag).attr('height', 6)
+      .attr('fill', 'url(#mag-grad)').attr('rx', 3)
+      .style('transition', 'width 0.3s ease')
 
     g.append('text')
-      .attr('x', size / 2).attr('y', barY + 22)
+      .attr('x', size / 2).attr('y', barY + 18)
       .attr('text-anchor', 'middle')
-      .attr('fill', '#9ca3af').attr('font-size', '11px')
+      .attr('fill', 'rgba(255,255,255,0.3)')
+      .attr('font-size', '10px')
+      .attr('font-family', "'JetBrains Mono', monospace")
       .text(`M = ${mag.toFixed(3)}`)
   }, [snapshot])
 
-  return (
-    <>
-      <style>{`
-        @keyframes pulse-border {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.3; }
-        }
-      `}</style>
-      <svg ref={svgRef} />
-    </>
-  )
+  if (!snapshot) {
+    return (
+      <div style={{ width: 260, height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <span style={{ color: 'rgba(255,255,255,0.15)', fontSize: '12px' }}>Awaiting simulation...</span>
+      </div>
+    )
+  }
+
+  return <svg ref={svgRef} />
 }

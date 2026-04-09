@@ -1,27 +1,37 @@
 import React from 'react'
 import useSimStore from '../store/useSimStore'
 
-const pulseStyle = `
-@keyframes scale-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-}
+const css = `
+  @keyframes badge-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.92; transform: scale(1.01); }
+  }
+  @keyframes dot-blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
 `
 
 export default function EarlyWarningBadge() {
   const { topoAlarmStep, classicalAlarmStep, leadTime, snapshots } = useSimStore()
 
   const topoSnap = topoAlarmStep != null
-    ? snapshots.find(s => s.step === topoAlarmStep)
-    : null
+    ? snapshots.find(s => s.step === topoAlarmStep) : null
   const classicalSnap = classicalAlarmStep != null
-    ? snapshots.find(s => s.step === classicalAlarmStep)
-    : null
+    ? snapshots.find(s => s.step === classicalAlarmStep) : null
 
   if (topoAlarmStep == null && classicalAlarmStep == null) {
     return (
-      <div style={{ color: '#6b7280', fontSize: '13px', textAlign: 'center', padding: '8px' }}>
-        Waiting for phase transition...
+      <div style={{
+        textAlign: 'center', padding: '12px 0',
+        color: 'rgba(255,255,255,0.2)', fontSize: '12px',
+      }}>
+        <div style={{
+          width: '6px', height: '6px', borderRadius: '50%',
+          background: 'rgba(255,255,255,0.1)',
+          margin: '0 auto 8px',
+        }} />
+        Monitoring for phase transition...
       </div>
     )
   }
@@ -29,23 +39,34 @@ export default function EarlyWarningBadge() {
   if (topoAlarmStep != null && classicalAlarmStep == null) {
     return (
       <>
-        <style>{pulseStyle}</style>
+        <style>{css}</style>
         <div style={{
-          background: '#92400e',
-          color: '#fef3c7',
-          borderRadius: '8px',
+          background: 'rgba(245,158,11,0.08)',
+          border: '1px solid rgba(245,158,11,0.15)',
+          borderRadius: '12px',
           padding: '14px',
           textAlign: 'center',
-          animation: 'scale-pulse 2s infinite',
+          animation: 'badge-pulse 2.5s ease-in-out infinite',
         }}>
-          <div style={{ fontWeight: 700, fontSize: '14px', letterSpacing: '1px', marginBottom: '6px' }}>
-            TOPOLOGICAL EARLY WARNING
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginBottom: '8px' }}>
+            <div style={{
+              width: '6px', height: '6px', borderRadius: '50%',
+              background: '#fbbf24',
+              boxShadow: '0 0 8px rgba(251,191,36,0.5)',
+              animation: 'dot-blink 1.5s ease-in-out infinite',
+            }} />
+            <span style={{
+              fontWeight: 600, fontSize: '10px', letterSpacing: '1.5px',
+              textTransform: 'uppercase', color: '#fbbf24',
+            }}>
+              Topological Warning
+            </span>
           </div>
-          <div style={{ fontSize: '12px' }}>
-            Topology detected transition at step {topoAlarmStep}
+          <div className="mono" style={{ fontSize: '11px', color: 'rgba(251,191,36,0.7)' }}>
+            Detected at step {topoAlarmStep}
           </div>
-          <div style={{ fontSize: '11px', marginTop: '4px', opacity: 0.85 }}>
-            Classical magnetization has not yet confirmed — watching...
+          <div style={{ fontSize: '10px', marginTop: '4px', color: 'rgba(255,255,255,0.25)' }}>
+            Awaiting classical confirmation...
           </div>
         </div>
       </>
@@ -56,29 +77,57 @@ export default function EarlyWarningBadge() {
     if (leadTime > 0) {
       return (
         <>
-          <style>{pulseStyle}</style>
+          <style>{css}</style>
           <div style={{
-            background: '#065f46',
-            color: '#d1fae5',
-            borderRadius: '8px',
+            background: 'rgba(16,185,129,0.06)',
+            border: '1px solid rgba(16,185,129,0.12)',
+            borderRadius: '12px',
             padding: '14px',
             textAlign: 'center',
-            animation: 'scale-pulse 2s infinite',
+            animation: 'badge-pulse 3s ease-in-out infinite',
           }}>
-            <div style={{ fontWeight: 700, fontSize: '14px', letterSpacing: '1px', marginBottom: '6px' }}>
-              TOPOLOGICAL EARLY WARNING CONFIRMED
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginBottom: '8px' }}>
+              <div style={{
+                width: '6px', height: '6px', borderRadius: '50%',
+                background: '#34d399',
+                boxShadow: '0 0 8px rgba(52,211,153,0.5)',
+              }} />
+              <span style={{
+                fontWeight: 600, fontSize: '10px', letterSpacing: '1.5px',
+                textTransform: 'uppercase', color: '#34d399',
+              }}>
+                Early Warning Confirmed
+              </span>
             </div>
-            <div style={{ fontSize: '13px', fontWeight: 600 }}>
-              Topology fired {leadTime} steps before classical detector
+            <div style={{
+              fontSize: '20px', fontWeight: 700, color: '#e2e4e9',
+              margin: '6px 0',
+              fontFamily: "'JetBrains Mono', monospace",
+            }}>
+              +{leadTime} steps
             </div>
-            <div style={{ fontSize: '11px', marginTop: '6px', opacity: 0.85 }}>
-              Topo alarm: step {topoAlarmStep} | Classical alarm: step {classicalAlarmStep}
+            <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', marginBottom: '8px' }}>
+              Topology led classical detector
             </div>
-            {topoSnap && classicalSnap && (
-              <div style={{ fontSize: '11px', marginTop: '2px', opacity: 0.75 }}>
-                T at topo alarm: {topoSnap.temperature.toFixed(3)} | T at classical: {classicalSnap.temperature.toFixed(3)}
+            <div style={{
+              display: 'flex', justifyContent: 'center', gap: '16px',
+              paddingTop: '8px', borderTop: '1px solid rgba(255,255,255,0.04)',
+            }}>
+              <div>
+                <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.2)', marginBottom: '2px' }}>Topo</div>
+                <div className="mono" style={{ fontSize: '10px', color: 'rgba(167,139,250,0.7)' }}>
+                  #{topoAlarmStep}
+                  {topoSnap && <span style={{ color: 'rgba(255,255,255,0.2)' }}> T={topoSnap.temperature.toFixed(2)}</span>}
+                </div>
               </div>
-            )}
+              <div>
+                <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.2)', marginBottom: '2px' }}>Classical</div>
+                <div className="mono" style={{ fontSize: '10px', color: 'rgba(244,114,82,0.7)' }}>
+                  #{classicalAlarmStep}
+                  {classicalSnap && <span style={{ color: 'rgba(255,255,255,0.2)' }}> T={classicalSnap.temperature.toFixed(2)}</span>}
+                </div>
+              </div>
+            </div>
           </div>
         </>
       )
@@ -86,17 +135,17 @@ export default function EarlyWarningBadge() {
 
     return (
       <div style={{
-        background: '#374151',
-        color: '#d1d5db',
-        borderRadius: '8px',
+        background: 'rgba(255,255,255,0.02)',
+        border: '1px solid rgba(255,255,255,0.05)',
+        borderRadius: '12px',
         padding: '14px',
         textAlign: 'center',
       }}>
-        <div style={{ fontWeight: 700, fontSize: '13px', marginBottom: '6px' }}>
-          Classical detector was equally fast this run
-        </div>
-        <div style={{ fontSize: '11px', opacity: 0.8 }}>
-          Consider increasing sweeps_per_step or lattice size for clearer separation
+        <span style={{ fontWeight: 500, fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>
+          Classical detector matched topology
+        </span>
+        <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.2)', marginTop: '4px' }}>
+          Try larger N or fewer sweeps/step
         </div>
       </div>
     )

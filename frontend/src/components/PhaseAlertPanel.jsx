@@ -1,97 +1,123 @@
 import React from 'react'
 
-const phaseColors = {
-  ordered: '#E1F5EE',
-  critical: '#FAEEDA',
-  disordered: '#FCEBEB',
+const phaseConfig = {
+  ordered: {
+    bg: 'rgba(16,185,129,0.06)',
+    border: 'rgba(16,185,129,0.12)',
+    color: '#34d399',
+    glow: 'rgba(16,185,129,0.15)',
+  },
+  critical: {
+    bg: 'rgba(245,158,11,0.06)',
+    border: 'rgba(245,158,11,0.12)',
+    color: '#fbbf24',
+    glow: 'rgba(245,158,11,0.15)',
+  },
+  disordered: {
+    bg: 'rgba(239,68,68,0.05)',
+    border: 'rgba(239,68,68,0.1)',
+    color: '#f87171',
+    glow: 'rgba(239,68,68,0.1)',
+  },
 }
-const phaseTextColors = {
-  ordered: '#065f46',
-  critical: '#92400e',
-  disordered: '#991b1b',
-}
+
+const barAccent = ['#6366f1', '#a78bfa', '#f47252']
 
 export default function PhaseAlertPanel({ snapshot }) {
   if (!snapshot) {
     return (
-      <div style={{ padding: '20px', textAlign: 'center', color: '#6b7280' }}>
-        Waiting for simulation data...
+      <div style={{ padding: '40px 20px', textAlign: 'center', color: 'rgba(255,255,255,0.15)', fontSize: '12px' }}>
+        Awaiting classification...
       </div>
     )
   }
 
   const { phase, phase_probs, transition_prob, temperature, magnetization } = snapshot
-  const bg = phaseColors[phase] || '#1f2937'
-  const textColor = phaseTextColors[phase] || '#e0e0e0'
+  const cfg = phaseConfig[phase] || phaseConfig.disordered
+  const labels = ['Ordered', 'Critical', 'Disordered']
   const pulsing = transition_prob > 0.8
 
-  const labels = ['Ordered', 'Critical', 'Disordered']
-  const barColors = ['#10b981', '#f59e0b', '#ef4444']
-
   return (
-    <div style={{ position: 'relative' }}>
+    <div>
       {pulsing && (
         <style>{`
-          @keyframes pulse-panel { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)} 50%{box-shadow:0 0 0 6px rgba(239,68,68,0)} }
+          @keyframes critical-glow {
+            0%, 100% { box-shadow: 0 0 20px ${cfg.glow}; }
+            50% { box-shadow: 0 0 40px ${cfg.glow}, 0 0 60px ${cfg.glow}; }
+          }
         `}</style>
       )}
+
+      {/* Phase name */}
       <div style={{
-        background: bg,
-        borderRadius: '8px',
+        background: cfg.bg,
+        border: `1px solid ${cfg.border}`,
+        borderRadius: '12px',
         padding: '16px',
-        animation: pulsing ? 'pulse-panel 1s infinite' : 'none',
-        border: pulsing ? '2px solid #ef4444' : '1px solid transparent',
+        textAlign: 'center',
+        marginBottom: '16px',
+        animation: pulsing ? 'critical-glow 2s ease-in-out infinite' : 'none',
       }}>
         <div style={{
-          fontSize: '32px',
-          fontWeight: 700,
-          textAlign: 'center',
-          color: textColor,
-          textTransform: 'uppercase',
-          letterSpacing: '2px',
+          fontSize: '24px', fontWeight: 700, color: cfg.color,
+          textTransform: 'uppercase', letterSpacing: '3px',
         }}>
           {phase}
         </div>
+      </div>
 
-        <div style={{ marginTop: '12px' }}>
-          {labels.map((label, i) => (
-            <div key={label} style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
-              <span style={{ width: '80px', fontSize: '12px', color: '#374151' }}>{label}</span>
-              <div style={{ flex: 1, height: '12px', background: '#d1d5db', borderRadius: '4px', overflow: 'hidden' }}>
-                <div style={{
-                  width: `${(phase_probs[i] * 100).toFixed(1)}%`,
-                  height: '100%',
-                  background: barColors[i],
-                  borderRadius: '4px',
-                  transition: 'width 0.3s',
-                }} />
-              </div>
-              <span style={{ width: '44px', textAlign: 'right', fontSize: '11px', color: '#374151' }}>
-                {(phase_probs[i] * 100).toFixed(1)}%
-              </span>
+      {/* Probability bars */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        {labels.map((label, i) => (
+          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ width: '70px', fontSize: '11px', color: 'rgba(255,255,255,0.35)' }}>{label}</span>
+            <div style={{ flex: 1, height: '4px', background: 'rgba(255,255,255,0.04)', borderRadius: '2px', overflow: 'hidden' }}>
+              <div style={{
+                width: `${(phase_probs[i] * 100).toFixed(1)}%`,
+                height: '100%',
+                background: barAccent[i],
+                borderRadius: '2px',
+                transition: 'width 0.4s cubic-bezier(0.4,0,0.2,1)',
+                boxShadow: phase_probs[i] > 0.5 ? `0 0 8px ${barAccent[i]}40` : 'none',
+              }} />
             </div>
-          ))}
-        </div>
-
-        <div style={{ marginTop: '10px' }}>
-          <div style={{ fontSize: '12px', color: '#374151', marginBottom: '4px' }}>
-            Transition probability: {(transition_prob * 100).toFixed(1)}%
+            <span className="mono" style={{ width: '40px', textAlign: 'right', fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>
+              {(phase_probs[i] * 100).toFixed(0)}%
+            </span>
           </div>
-          <div style={{ height: '8px', background: '#d1d5db', borderRadius: '4px', overflow: 'hidden' }}>
-            <div style={{
-              width: `${(transition_prob * 100).toFixed(1)}%`,
-              height: '100%',
-              background: `linear-gradient(90deg, #10b981, #f59e0b ${50}%, #ef4444)`,
-              borderRadius: '4px',
-              transition: 'width 0.3s',
-            }} />
-          </div>
-        </div>
+        ))}
+      </div>
 
-        <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: '#4b5563' }}>
-          <span>T = {temperature.toFixed(3)} J/k_B</span>
-          <span>M = {magnetization.toFixed(3)}</span>
+      {/* Transition bar */}
+      <div style={{ marginTop: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+          <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)' }}>Transition probability</span>
+          <span className="mono" style={{ fontSize: '10px', color: transition_prob > 0.5 ? '#f87171' : 'rgba(255,255,255,0.3)' }}>
+            {(transition_prob * 100).toFixed(1)}%
+          </span>
         </div>
+        <div style={{ height: '3px', background: 'rgba(255,255,255,0.04)', borderRadius: '2px', overflow: 'hidden' }}>
+          <div style={{
+            width: `${(transition_prob * 100)}%`,
+            height: '100%',
+            background: 'linear-gradient(90deg, #6366f1, #a78bfa, #f47252)',
+            borderRadius: '2px',
+            transition: 'width 0.4s cubic-bezier(0.4,0,0.2,1)',
+          }} />
+        </div>
+      </div>
+
+      {/* Bottom stats */}
+      <div style={{
+        marginTop: '14px', display: 'flex', justifyContent: 'space-between',
+        paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.04)',
+      }}>
+        <span className="mono" style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>
+          T = {temperature.toFixed(3)}
+        </span>
+        <span className="mono" style={{ fontSize: '10px', color: 'rgba(255,255,255,0.25)' }}>
+          M = {magnetization.toFixed(3)}
+        </span>
       </div>
     </div>
   )
