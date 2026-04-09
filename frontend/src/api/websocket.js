@@ -29,12 +29,12 @@ export class WebSocketClient {
     this.ws.onclose = () => {
       this.connected = false
       if (this.onDisconnect) this.onDisconnect()
-      this.reconnectTimer = setTimeout(() => this.connect(), 3000)
+      this.retries = (this.retries || 0) + 1
+      const delay = Math.min(3000 * this.retries, 30000)
+      this.reconnectTimer = setTimeout(() => this.connect(), delay)
     }
 
-    this.ws.onerror = (err) => {
-      console.error('WebSocket error:', err)
-    }
+    this.ws.onerror = () => {}
   }
 
   disconnect() {
