@@ -5,35 +5,35 @@ import {
 } from 'recharts'
 
 const tip = {
-  background: '#0b1222', border: '1px solid #141d2f',
-  borderRadius: 6, fontSize: 10, fontFamily: "'JetBrains Mono', monospace",
-  boxShadow: '0 4px 20px rgba(0,0,0,0.5)', padding: '6px 10px',
+  background: '#09090b', border: '1px solid #27272a',
+  borderRadius: 8, fontSize: 12, fontFamily: "'JetBrains Mono', monospace",
+  boxShadow: '0 4px 24px rgba(0,0,0,0.5)', padding: '8px 12px',
 }
 
 export default function SpectralGapChart({ snapshots }) {
   const data = snapshots.map(s => ({ step: s.step, fiedler: s.fiedler, wasserstein: s.wasserstein }))
 
   if (!data.length) {
-    return <div style={{ height: 170, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2d3748', fontSize: '11px' }}>Awaiting data...</div>
+    return <div style={{ height: 190, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--fg-faint)', fontSize: '13px' }}>Awaiting data...</div>
   }
 
   return (
-    <ResponsiveContainer width="100%" height={170}>
+    <ResponsiveContainer width="100%" height={190}>
       <ComposedChart data={data}>
         <defs>
           <linearGradient id="fiedler-fill" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#1d4ed8" stopOpacity={0.2} />
-            <stop offset="100%" stopColor="#1d4ed8" stopOpacity={0.02} />
+            <stop offset="0%" stopColor="#fafafa" stopOpacity={0.08} />
+            <stop offset="100%" stopColor="#fafafa" stopOpacity={0.01} />
           </linearGradient>
         </defs>
-        <XAxis dataKey="step" stroke="#141d2f" tick={{ fill: '#3d4759', fontSize: 8, fontFamily: "'JetBrains Mono', monospace" }} axisLine={{ stroke: '#141d2f' }} tickLine={false} />
-        <YAxis yAxisId="left" stroke="#141d2f" tick={{ fill: '#3d4759', fontSize: 8, fontFamily: "'JetBrains Mono', monospace" }} axisLine={{ stroke: '#141d2f' }} tickLine={false} />
-        <YAxis yAxisId="right" orientation="right" stroke="#141d2f" tick={{ fill: '#3d4759', fontSize: 8, fontFamily: "'JetBrains Mono', monospace" }} axisLine={{ stroke: '#141d2f' }} tickLine={false} />
-        <Tooltip contentStyle={tip} labelStyle={{ color: '#5a6378' }} itemStyle={{ color: '#8b92a5', padding: '1px 0' }} />
-        <Legend wrapperStyle={{ fontSize: 9, color: '#3d4759', fontFamily: "'JetBrains Mono', monospace" }} />
-        <Area yAxisId="left" type="monotone" dataKey="fiedler" name="Fiedler" fill="url(#fiedler-fill)" stroke="#3b82f6" strokeWidth={1.5} />
-        <Line yAxisId="right" type="monotone" dataKey="wasserstein" name="Wasserstein" stroke="#eab308" dot={false} strokeWidth={1} strokeDasharray="3 2" />
-        <ReferenceLine yAxisId="left" y={0.01} stroke="rgba(239,68,68,0.2)" strokeDasharray="3 3" />
+        <XAxis dataKey="step" stroke="#27272a" tick={{ fill: '#52525b', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }} axisLine={{ stroke: '#27272a' }} tickLine={false} />
+        <YAxis yAxisId="left" stroke="#27272a" tick={{ fill: '#52525b', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }} axisLine={{ stroke: '#27272a' }} tickLine={false} />
+        <YAxis yAxisId="right" orientation="right" stroke="#27272a" tick={{ fill: '#52525b', fontSize: 10, fontFamily: "'JetBrains Mono', monospace" }} axisLine={{ stroke: '#27272a' }} tickLine={false} />
+        <Tooltip contentStyle={tip} labelStyle={{ color: '#71717a' }} itemStyle={{ color: '#fafafa', padding: '2px 0' }} />
+        <Legend wrapperStyle={{ fontSize: 11, color: '#71717a', fontFamily: "'JetBrains Mono', monospace", paddingTop: 8 }} />
+        <Area yAxisId="left" type="monotone" dataKey="fiedler" name="Fiedler" fill="url(#fiedler-fill)" stroke="#fafafa" strokeWidth={1.5} />
+        <Line yAxisId="right" type="monotone" dataKey="wasserstein" name="Wasserstein" stroke="#71717a" dot={false} strokeWidth={1} strokeDasharray="4 3" />
+        <ReferenceLine yAxisId="left" y={0.01} stroke="#ef4444" strokeOpacity={0.3} strokeDasharray="4 3" />
       </ComposedChart>
     </ResponsiveContainer>
   )

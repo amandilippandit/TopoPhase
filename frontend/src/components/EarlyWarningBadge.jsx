@@ -1,84 +1,68 @@
 import React from 'react'
 import useSimStore from '../store/useSimStore'
 
-const css = `
-  @keyframes warning-blink { 0%,100%{opacity:1} 50%{opacity:0.5} }
-`
-
 export default function EarlyWarningBadge() {
   const { topoAlarmStep, classicalAlarmStep, leadTime, snapshots } = useSimStore()
   const topoSnap = topoAlarmStep != null ? snapshots.find(s => s.step === topoAlarmStep) : null
   const classicalSnap = classicalAlarmStep != null ? snapshots.find(s => s.step === classicalAlarmStep) : null
 
-  // Waiting state
   if (topoAlarmStep == null && classicalAlarmStep == null) {
     return (
-      <div style={{ textAlign: 'center', padding: '6px 0', color: '#2d3748', fontSize: '11px' }}>
-        Monitoring...
+      <p style={{ fontSize: '13px', color: 'var(--fg-faint)', textAlign: 'center', padding: '4px 0' }}>
+        Monitoring for phase transition...
+      </p>
+    )
+  }
+
+  if (topoAlarmStep != null && classicalAlarmStep == null) {
+    return (
+      <div style={{
+        background: '#422006', border: '1px solid #713f12',
+        borderRadius: 8, padding: '14px', textAlign: 'center',
+      }}>
+        <span className="badge badge-warning" style={{ marginBottom: 8, display: 'inline-flex' }}>
+          Topological Warning
+        </span>
+        <div className="mono" style={{ fontSize: '12px', color: '#fbbf24', marginTop: 8 }}>
+          Detected at step {topoAlarmStep}
+        </div>
+        <p style={{ fontSize: '12px', color: 'var(--fg-dim)', marginTop: 4 }}>
+          Awaiting classical confirmation...
+        </p>
       </div>
     )
   }
 
-  // Topo fired, classical hasn't
-  if (topoAlarmStep != null && classicalAlarmStep == null) {
-    return (
-      <>
-        <style>{css}</style>
-        <div style={{
-          background: '#1a1508', border: '1px solid #2e250d', borderRadius: '8px',
-          padding: '12px', textAlign: 'center',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', marginBottom: '6px' }}>
-            <div style={{
-              width: '5px', height: '5px', borderRadius: '50%', background: '#eab308',
-              animation: 'warning-blink 1.5s ease-in-out infinite',
-            }} />
-            <span style={{ fontWeight: 600, fontSize: '9px', letterSpacing: '1.2px', textTransform: 'uppercase', color: '#eab308' }}>
-              Topological Warning
-            </span>
-          </div>
-          <div className="mono" style={{ fontSize: '10px', color: '#8b6e14' }}>
-            Detected at step {topoAlarmStep}
-          </div>
-          <div style={{ fontSize: '9px', color: '#3d4759', marginTop: '3px' }}>
-            Awaiting classical confirmation
-          </div>
-        </div>
-      </>
-    )
-  }
-
-  // Both fired
   if (topoAlarmStep != null && classicalAlarmStep != null) {
     if (leadTime > 0) {
       return (
         <div style={{
-          background: '#071a12', border: '1px solid #0d2e1f', borderRadius: '8px',
-          padding: '12px', textAlign: 'center',
+          background: '#052e16', border: '1px solid #14532d',
+          borderRadius: 8, padding: '14px', textAlign: 'center',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', marginBottom: '6px' }}>
-            <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: '#22c55e' }} />
-            <span style={{ fontWeight: 600, fontSize: '9px', letterSpacing: '1.2px', textTransform: 'uppercase', color: '#22c55e' }}>
-              Confirmed
-            </span>
-          </div>
-          <div className="mono" style={{ fontSize: '18px', color: '#c8cdd8', fontWeight: 700, margin: '4px 0' }}>
+          <span className="badge badge-success" style={{ marginBottom: 8, display: 'inline-flex' }}>
+            Early Warning Confirmed
+          </span>
+          <div className="mono" style={{ fontSize: '24px', fontWeight: 600, color: 'var(--fg)', marginTop: 8 }}>
             +{leadTime} steps
           </div>
-          <div style={{ fontSize: '9px', color: '#3d4759', marginBottom: '8px' }}>
+          <p style={{ fontSize: '12px', color: 'var(--fg-dim)', marginTop: 4 }}>
             Topology led classical detector
-          </div>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '14px', borderTop: '1px solid #0d2e1f', paddingTop: '8px' }}>
+          </p>
+          <div className="separator" />
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px' }}>
             <div>
-              <div style={{ fontSize: '8px', color: '#2d3748', marginBottom: '2px' }}>Topo</div>
-              <div className="mono" style={{ fontSize: '9px', color: '#3b82f6' }}>
-                #{topoAlarmStep}{topoSnap ? ` T=${topoSnap.temperature.toFixed(2)}` : ''}
+              <div style={{ fontSize: '11px', color: 'var(--fg-faint)', marginBottom: 2 }}>Topo</div>
+              <div className="mono" style={{ fontSize: '12px', color: 'var(--fg-muted)' }}>
+                #{topoAlarmStep}
+                {topoSnap && <span style={{ color: 'var(--fg-faint)' }}> T={topoSnap.temperature.toFixed(2)}</span>}
               </div>
             </div>
             <div>
-              <div style={{ fontSize: '8px', color: '#2d3748', marginBottom: '2px' }}>Classical</div>
-              <div className="mono" style={{ fontSize: '9px', color: '#f47252' }}>
-                #{classicalAlarmStep}{classicalSnap ? ` T=${classicalSnap.temperature.toFixed(2)}` : ''}
+              <div style={{ fontSize: '11px', color: 'var(--fg-faint)', marginBottom: 2 }}>Classical</div>
+              <div className="mono" style={{ fontSize: '12px', color: 'var(--fg-muted)' }}>
+                #{classicalAlarmStep}
+                {classicalSnap && <span style={{ color: 'var(--fg-faint)' }}> T={classicalSnap.temperature.toFixed(2)}</span>}
               </div>
             </div>
           </div>
@@ -88,15 +72,15 @@ export default function EarlyWarningBadge() {
 
     return (
       <div style={{
-        background: '#0d1526', border: '1px solid #141d2f', borderRadius: '8px',
-        padding: '12px', textAlign: 'center',
+        background: 'var(--accent)', border: '1px solid var(--border)',
+        borderRadius: 8, padding: '14px', textAlign: 'center',
       }}>
-        <span style={{ fontWeight: 500, fontSize: '10px', color: '#5a6378' }}>
-          Classical detector matched topology
-        </span>
-        <div style={{ fontSize: '9px', color: '#2d3748', marginTop: '3px' }}>
-          Try larger N or fewer sweeps/step
-        </div>
+        <p style={{ fontSize: '13px', color: 'var(--fg-muted)' }}>
+          Classical detector matched topology this run.
+        </p>
+        <p style={{ fontSize: '12px', color: 'var(--fg-faint)', marginTop: 4 }}>
+          Try increasing lattice size or reducing sweeps/step.
+        </p>
       </div>
     )
   }
