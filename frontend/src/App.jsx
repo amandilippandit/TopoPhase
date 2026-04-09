@@ -118,9 +118,13 @@ export default function App() {
     sweeps_per_step: 10, stream_interval_ms: 200, graph_threshold: 0.01,
   })
 
+  const backendUrl = import.meta.env.VITE_BACKEND_URL || `http://${window.location.hostname}:8000`
+  const wsUrl = backendUrl.replace(/^http/, 'ws') + '/ws/stream'
+  const apiUrl = backendUrl
+
   useEffect(() => {
     const ws = new WebSocketClient(
-      `ws://${window.location.hostname}:8000/ws/stream`,
+      wsUrl,
       (data) => {
         if (data.type === 'connected' || data.type === 'heartbeat') return
         if (data.step !== undefined) { pushSnapshot(data); setRunning(true) }
@@ -136,18 +140,18 @@ export default function App() {
   const handleStart = async () => {
     resetRun()
     try {
-      await fetch('/api/params', {
+      await fetch(`${apiUrl}/params`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(localParams),
       })
-      await fetch('/api/start', { method: 'POST' })
+      await fetch(`${apiUrl}/start`, { method: 'POST' })
       setRunning(true)
     } catch (e) {}
   }
 
   const handleStop = async () => {
     try {
-      await fetch('/api/stop', { method: 'POST' })
+      await fetch(`${apiUrl}/stop`, { method: 'POST' })
     } catch (e) {}
     setRunning(false)
   }
