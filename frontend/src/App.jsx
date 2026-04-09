@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { WebSocketClient } from './api/websocket'
+import { WebSocketClient } from './lib/websocket'
 import useSimStore from './store/useSimStore'
 import LatticeView from './components/LatticeView'
 import PersistenceDiagram from './components/PersistenceDiagram'
@@ -135,16 +135,20 @@ export default function App() {
 
   const handleStart = async () => {
     resetRun()
-    await fetch('/api/params', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(localParams),
-    })
-    await fetch('/api/start', { method: 'POST' })
-    setRunning(true)
+    try {
+      await fetch('/api/params', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(localParams),
+      })
+      await fetch('/api/start', { method: 'POST' })
+      setRunning(true)
+    } catch (e) {}
   }
 
   const handleStop = async () => {
-    await fetch('/api/stop', { method: 'POST' })
+    try {
+      await fetch('/api/stop', { method: 'POST' })
+    } catch (e) {}
     setRunning(false)
   }
 

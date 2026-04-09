@@ -10,10 +10,16 @@ export class WebSocketClient {
   }
 
   connect() {
-    this.ws = new WebSocket(this.url)
+    try {
+      this.ws = new WebSocket(this.url)
+    } catch (e) {
+      this._scheduleReconnect()
+      return
+    }
 
     this.ws.onopen = () => {
       this.connected = true
+      this.retries = 0
       if (this.onConnect) this.onConnect()
     }
 
@@ -21,20 +27,22 @@ export class WebSocketClient {
       try {
         const data = JSON.parse(event.data)
         if (this.onMessage) this.onMessage(data)
-      } catch (e) {
-        console.error('Failed to parse WebSocket message:', e)
-      }
+      } catch (e) {}
     }
 
     this.ws.onclose = () => {
       this.connected = false
       if (this.onDisconnect) this.onDisconnect()
-      this.retries = (this.retries || 0) + 1
-      const delay = Math.min(3000 * this.retries, 30000)
-      this.reconnectTimer = setTimeout(() => this.connect(), delay)
+      this._scheduleReconnect()
     }
 
     this.ws.onerror = () => {}
+  }
+
+  _scheduleReconnect() {
+    this.retries = (this.retries || 0) + 1
+    const delay = Math.min(3000 * this.retries, 30000)
+    this.reconnectTimer = setTimeout(() => this.connect(), delay)
   }
 
   disconnect() {
